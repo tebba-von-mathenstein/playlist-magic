@@ -6,8 +6,6 @@ var path = require("path");
 
 // CONFIG in .env
 require('dotenv').config();
-console.log("Booting up with Process ENV of: ")
-console.log(process.env);
 
 // App configuration
 var app = express();
@@ -18,9 +16,9 @@ app.use(cookieParser());
 
 // Routes
 var spotifyAuth = require('./routes/spotifyAuth');
-app.use('spot-auth', spotifyAuth);
+app.use('/spot-auth', spotifyAuth);
 
-app.get("*", function(req,res){
+app.get("/", function(req,res){
     if(req.cookies.spotifyAccessToken) {
         res.sendFile(path.join(__dirname, 'views', 'main.html'));    
     }

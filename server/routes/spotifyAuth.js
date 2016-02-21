@@ -46,7 +46,8 @@ app.get('/login-spotify', function(req, res) {
 /** 
  * Triggered by Login with Spotify OAuth flow. Spotify will
  * send us a response indicating success or failure of the 
- * OAuth login attempt. Code provided by Spotify.
+ * OAuth login attempt. Code provided by Spotify. On success
+ * add the access and refresh tokens to a cookie.
  * 
  * https://raw.githubusercontent.com/spotify/web-api-auth-examples/master/authorization_code/app.js
  */
@@ -59,11 +60,10 @@ app.get('/spotify-creditials-callback', function(req, res) {
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
 
-  if (state === null || state !== storedState) {
-    res.redirect('/#' +
-      querystring.stringify({
-        error: 'state_mismatch'
-      }));
+  if (state === null) {
+    throw new Error("Invalid State: state parameter cannot be null. storedState: " + storedState);
+  } else if(state !== storedState) {
+    throw new Error("Invalid State: state(" + state + ") should be equal to storedState(" + storedState + ") ");
   } else {
     res.clearCookie(stateKey);
     var authOptions = {
@@ -86,13 +86,17 @@ app.get('/spotify-creditials-callback', function(req, res) {
         res.cookie('spotifyRefreshToken', body.refresh_token);
         res.redirect('/');
       } else {
-        res.redirect('/error');
+        throw new Error(error);
       }
     });
   }
 });
 
-app.get('/refresh_token', function(req, res) {
+/**
+ * Request a new access token from a refresh token.
+ * Returns a JSON object containing the access_token.
+ */
+app.get('/refresh-token', function(req, res) {
 
   // requesting access token from refresh token
   var refresh_token = req.query.refresh_token;
@@ -109,11 +113,36 @@ app.get('/refresh_token', function(req, res) {
   request.post(authOptions, function(error, response, body) {
     if (!error && response.statusCode === 200) {
       var access_token = body.access_token;
-      res.send({
+      res.json({
         'access_token': access_token
       });
     }
+    else {
+      res.status(500);
+      res.json(error);
+    }
   });
+});
+
+/**
+ * Return the cookie-session-user's access token
+ */
+app.get('/access-token', function(req, res) {
+
+  if(req.cookies.spotifyAccessToken) {
+    res.json({
+      'access_token': req.cookies.spotifyAccessToken
+    });
+  }
+  else if(req.cookies.spotifyRefreshToken) {
+    res.redirect('refresh-token?refresh_token=' + req.cookies.spotifyRefreshToken);
+  }
+  else {
+    res.status(403);
+    res.json({
+      'error': "User had no refresh token cookie so we could not fetch the access token."
+    });
+  }
 });
 
 module.exports = app;
