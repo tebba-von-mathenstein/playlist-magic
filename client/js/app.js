@@ -1,6 +1,6 @@
 var app = angular.module("PlaylistMagic",['ngRoute']);
 
-app.config(function($routeProvider, $httpProvider){
+app.config(function($routeProvider, $httpProvider, $locationProvider){
   $routeProvider.when('/',{
     templateUrl: "/client/templates/userPlaylists.html",
     controller: "PlaylistsController",
@@ -9,8 +9,9 @@ app.config(function($routeProvider, $httpProvider){
         var accessTokenPr = $http({
           url: '/spot-auth/access-token',
           method: 'GET'
-        }).then(function(accessTokenResponse) {
-          console.log(accessTokenResponse);
+        });
+
+        var meDataPromise = accessTokenPr.then(function(accessTokenResponse) {
           if(accessTokenResponse.data.access_token) {
             localStorage.setItem('spotifyAccessToken', accessTokenResponse.data.access_token);
           }
@@ -19,21 +20,23 @@ app.config(function($routeProvider, $httpProvider){
             method: 'GET'
           });
         }).then(function(meResponse) {
-          console.log(meResponse);
           return meResponse.data;
         }).catch(function(error){
-          console.log(error);
           return error;
         });
 
-        return accessTokenPr;
+        return meDataPromise;
       }
     }
+  }).when('/discography/:playlistId/',{
+    templateUrl: "/client/templates/discography.html",
+    controller: "DiscographyController",
   })
   .otherwise({
     redirectTo: '/'
   });
-
+  
+  $locationProvider.html5Mode(true);
   $httpProvider.interceptors.push('SpotifyAccessInterceptor');
 });
 

@@ -2,6 +2,7 @@ var app = angular.module("PlaylistMagic");
 
 app.controller("PlaylistsController", function($scope, $http, spotifyMeData){
     var playlists = [];
+
     $scope.displayName = spotifyMeData.display_name;
     $http({
         url: spotifyMeData.href + "/playlists",
@@ -13,7 +14,8 @@ app.controller("PlaylistsController", function($scope, $http, spotifyMeData){
         $scope.playlists = playlists.map(function(playlist) {
             return {
                 name: playlist.name,
-                href: playlist.href
+                href: playlist.href,
+                id:   playlist.id
             }
         });
     })

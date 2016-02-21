@@ -1,5 +1,7 @@
 <spotify-profile user="spotifyMeData"></spotify-profile>
 <h1>{{displayName}}</h1>
 <ul>
-    <li ng-repeat="playlist in playlists">{{playlist.name}}</li>
+    <li ng-repeat="playlist in playlists">
+        <a ng-href="discography/{{playlist.id}}">{{playlist.name}} {{playlist.id}}</a>
+    </li>
 </ul>
