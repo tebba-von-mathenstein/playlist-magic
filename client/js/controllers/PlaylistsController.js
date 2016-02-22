@@ -4,6 +4,7 @@ app.controller("PlaylistsController", function($scope, $http, spotifyMeData){
     var playlists = [];
 
     $scope.displayName = spotifyMeData.display_name;
+    $scope.userId = spotifyMeData.id;
     $http({
         url: spotifyMeData.href + "/playlists",
         method: "GET"

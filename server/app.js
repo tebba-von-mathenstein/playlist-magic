@@ -18,7 +18,7 @@ app.use(cookieParser());
 var spotifyAuth = require('./routes/spotifyAuth');
 app.use('/spot-auth', spotifyAuth);
 
-app.get("/", function(req,res){
+app.get("*", function(req,res){
     if(req.cookies.spotifyAccessToken) {
         res.sendFile(path.join(__dirname, 'views', 'main.html'));    
     }

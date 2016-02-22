@@ -28,7 +28,7 @@ app.config(function($routeProvider, $httpProvider, $locationProvider){
         return meDataPromise;
       }
     }
-  }).when('/discography/:playlistId/',{
+  }).when('/discography/:userId/:playlistId/',{
     templateUrl: "/client/templates/discography.html",
     controller: "DiscographyController",
   })
@@ -40,16 +40,23 @@ app.config(function($routeProvider, $httpProvider, $locationProvider){
   $httpProvider.interceptors.push('SpotifyAccessInterceptor');
 });
 
-// Check for an access token and use it if we're
-// making a request to Spotify.
+/**
+ * Every request to spotify is prepended with the users access token.
+ */
 app.service('SpotifyAccessInterceptor', function SpotifyAccessInterceptor(){
   return {
     request: function(config){
-      var accessToken = localStorage.getItem('spotifyAccessToken');
-      if(accessToken) {
-        config.headers.authorization = "Bearer " + accessToken;
+      if(config.url.indexOf('api.spotify.com') !== -1) {
+        var accessToken = localStorage.getItem('spotifyAccessToken');
+        if(accessToken) {
+          config.headers.authorization = "Bearer " + accessToken;
+        }
+        else {
+          console.log("Predicted failure, spotify access without access token.");
+        }
       }
       return config;
     }
   };
-})
+});
+
